@@ -1,6 +1,5 @@
 from django.db import models
 
-# Create your models here.
 
 class Station(models.Model):
     code = models.CharField("Код станции", max_length=20, unique=True)
@@ -11,14 +10,13 @@ class Station(models.Model):
         verbose_name_plural = "Станции"
         ordering = ["name"]
 
-    def get_name(self):
-        return self.name
-    def get_code(self):
-        return self.code
-    
+    def __str__(self) -> str:
+        return f"{self.name} ({self.code})"
+
+
 class Cargo(models.Model):
-    codeETG = models.CharField("Код груза (ЕТСНГ)", max_length=20, unique=True)
-    codeGNG = models.CharField("Код груза (ГНГ)", max_length=20, null=True, blank=True)
+    etsng_code = models.CharField("Код груза (ЕТСНГ)", max_length=20, unique=True)
+    gng_code = models.CharField("Код груза (ГНГ)", max_length=20, null=True, blank=True)
     name = models.CharField("Наименование груза", max_length=255)
 
     class Meta:
@@ -26,12 +24,11 @@ class Cargo(models.Model):
         verbose_name_plural = "Грузы"
         ordering = ["name"]
 
-    def get_name(self):
-        return self.name
-    def get_codeETG(self):
-        return self.codeETG
-    def get_codeGNG(self):
-        return self.codeGNG
+    def __str__(self) -> str:
+        if self.gng_code:
+            return f"{self.name} (ЕТСНГ {self.etsng_code}, ГНГ {self.gng_code})"
+        return f"{self.name} (ЕТСНГ {self.etsng_code})"
+
 
 class WagonType(models.Model):
     code = models.CharField("Код типа вагона", max_length=20, unique=True)
@@ -50,9 +47,6 @@ class WagonType(models.Model):
         verbose_name_plural = "Типы вагонов"
         ordering = ["name"]
 
-    def get_name(self):
-        return self.name
-    def get_code(self):
-        return self.code
-    def get_capacity_tons(self):
-        return self.capacity_tons
+    def __str__(self) -> str:
+        cap = f", {self.capacity_tons}т" if self.capacity_tons is not None else ""
+        return f"{self.name} ({self.code}{cap})"
