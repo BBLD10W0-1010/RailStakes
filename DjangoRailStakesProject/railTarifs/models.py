@@ -17,7 +17,7 @@ class Station(models.Model):
 class Cargo(models.Model):
     etsng_code = models.CharField("Код груза (ЕТСНГ)", max_length=20, unique=True)
     gng_code = models.CharField("Код груза (ГНГ)", max_length=20, null=True, blank=True)
-    name = models.CharField("Наименование груза", max_length=255)
+    name = models.CharField("Наименование груза", max_length=600)
 
     class Meta:
         verbose_name = "Груз"
@@ -32,7 +32,7 @@ class Cargo(models.Model):
 
 class WagonType(models.Model):
     code = models.CharField("Код типа вагона", max_length=20, unique=True)
-    name = models.CharField("Тип вагона", max_length=120)
+    name = models.CharField("Тип вагона", max_length=600)
     capacity_tons = models.DecimalField(
         "Грузоподъемность, т",
         max_digits=7,

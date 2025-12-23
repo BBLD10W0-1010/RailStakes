@@ -1,65 +1,47 @@
-from __future__ import annotations
-
-import datetime as dt
-from dataclasses import dataclass
-from decimal import Decimal
-from typing import Optional, Dict, Any
-import xml.etree.ElementTree as ET
-
 import requests
-
-
-@dataclass
-class AltaCalcResponse:
-    ok: bool
-    total_price: Optional[Decimal] = None
-    currency: str = "RUB"
-    error_text: str = ""
-    raw_xml: str = ""
+import xml.etree.ElementTree as ET
 
 
 class AltaApiClient:
-    def __init__(self, base_url: str, api_key: str, timeout: int = 20):
-        self.base_url = base_url.rstrip("/")
+    def __init__(self, base_url: str, api_key: str):
+        self.base_url = base_url.rstrip("/") + "/"
         self.api_key = api_key
-        self.timeout = timeout
 
-    def calc(self, params: Dict[str, Any]) -> AltaCalcResponse:
-        if not self.api_key:
-            return AltaCalcResponse(ok=False, error_text="ALTA_API_KEY не задан в .env")
+    def calc(self, params: dict) -> dict:
+        # Альта обычно отдаёт XML, удобнее сразу просить calc.xml
+        params = {**params, "type": "calc", "api_key": self.api_key, "page": "calc.xml"}
 
-        full_params = {"type": "calc", "api_key": self.api_key}
-        full_params.update(params)
+        r = requests.get(self.base_url, params=params, timeout=30)
+        r.raise_for_status()
+        xml_text = r.text
 
-        r = requests.get(self.base_url + "/", params=full_params, timeout=self.timeout)
-        raw_xml = r.text
+        parsed = self._parse_calc_xml(xml_text)
+        # raw_xml оставляем для дебага (но ключ потом будем вырезать)
+        parsed["raw_xml"] = xml_text
+        return parsed
 
-        if r.status_code != 200:
-            return AltaCalcResponse(ok=False, error_text=f"HTTP {r.status_code}", raw_xml=raw_xml)
+    @staticmethod
+    def _parse_calc_xml(xml_text: str) -> dict:
+        root = ET.fromstring(xml_text)
 
-        # Ответ у Альта-Софт XML. Разбор сделаем максимально аккуратным: ищем ошибки и сумму.
-        try:
-            root = ET.fromstring(raw_xml)
-        except ET.ParseError:
-            return AltaCalcResponse(ok=False, error_text="Не удалось разобрать XML ответа", raw_xml=raw_xml)
+        def get_tag(tag: str):
+            el = root.find(f".//{tag}")
+            if el is None:
+                return None
+            return {
+                "value": el.attrib.get("value"),
+                "currency": el.attrib.get("currency"),
+                "unit": el.attrib.get("unit"),
+            }
 
-        # Попытка найти текст ошибки (в разных ответах теги могут отличаться)
-        text_all = " ".join(root.itertext()).strip().lower()
-        if "error" in text_all or "ошиб" in text_all:
-            return AltaCalcResponse(ok=False, error_text="API вернуло ошибку (см. raw_xml)", raw_xml=raw_xml)
+        status_el = root.find(".//status")
+        status = status_el.text.strip() if status_el is not None and status_el.text else ""
 
-        # Универсальный поиск числа "итого"/"total" — без гарантий, но рабочая база.
-        # Когда увидим реальный XML — подстроим точный путь.
-        total = None
-        for node in root.iter():
-            tag = node.tag.lower()
-            if any(k in tag for k in ("total", "itogo", "sum", "price", "стоим", "итог")):
-                if node.text:
-                    s = node.text.strip().replace(",", ".")
-                    try:
-                        total = Decimal(s)
-                        break
-                    except Exception:
-                        pass
-
-        return AltaCalcResponse(ok=True, total_price=total, raw_xml=raw_xml)
+        return {
+            "status": status,
+            "total_all": get_tag("total_all"),
+            "tonna_all": get_tag("tonna_all"),
+            "total_all_nalog": get_tag("total_all_nalog"),
+            "guard_all": get_tag("guard_all"),
+            "delivery_time": get_tag("delivery_time"),
+        }

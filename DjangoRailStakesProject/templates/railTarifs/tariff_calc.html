@@ -85,28 +85,83 @@
         <h2 class="h5 mb-3">Результат</h2>
 
         {% if result %}
-          {% if result.ok %}
+          {% if result.status == "ok" %}
             <div class="alert alert-success">
               <div><strong>Расчет выполнен</strong></div>
-              <div class="mt-2">
-                Итог: <strong>
-                  {% if result.total_price %}{{ result.total_price }}{% else %}—{% endif %}
-                </strong> {{ result.currency }}
+
+              <div class="mt-3">
+                <div class="d-flex justify-content-between">
+                  <span>Итог</span>
+                  <strong>
+                    {% if result.total_all and result.total_all.value %}
+                      {{ result.total_all.value }} {{ result.total_all.currency }}
+                    {% else %}
+                      —
+                    {% endif %}
+                  </strong>
+                </div>
+
+                <div class="d-flex justify-content-between mt-1">
+                  <span>За тонну</span>
+                  <span>
+                    {% if result.tonna_all and result.tonna_all.value %}
+                      {{ result.tonna_all.value }} {{ result.tonna_all.currency }}
+                    {% else %}
+                      —
+                    {% endif %}
+                  </span>
+                </div>
+
+                <div class="d-flex justify-content-between mt-1">
+                  <span>Налог</span>
+                  <span>
+                    {% if result.total_all_nalog and result.total_all_nalog.value %}
+                      {{ result.total_all_nalog.value }} {{ result.total_all_nalog.currency }}
+                    {% else %}
+                      —
+                    {% endif %}
+                  </span>
+                </div>
+
+                <div class="d-flex justify-content-between mt-1">
+                  <span>Охрана</span>
+                  <span>
+                    {% if result.guard_all and result.guard_all.value %}
+                      {{ result.guard_all.value }} {{ result.guard_all.currency|default:"" }}
+                    {% else %}
+                      —
+                    {% endif %}
+                  </span>
+                </div>
+
+                <div class="d-flex justify-content-between mt-1">
+                  <span>Срок доставки</span>
+                  <span>
+                    {% if result.delivery_time and result.delivery_time.value %}
+                      {{ result.delivery_time.value }} {{ result.delivery_time.unit }}
+                    {% else %}
+                      —
+                    {% endif %}
+                  </span>
+                </div>
               </div>
-              <div class="small text-muted mt-2">
-                Если итог не распознан — открой сырой ответ ниже, и мы подстроим парсер под точный тег.
+
+              <div class="small text-muted mt-3">
+                Если что-то не распознано — открой сырой XML ниже и мы подстроим парсер.
               </div>
             </div>
 
-            <details>
+            <details class="mt-3">
               <summary>Показать сырой ответ API (XML)</summary>
               <pre class="mt-2" style="max-height: 320px; overflow:auto;">{{ result.raw_xml|escape }}</pre>
             </details>
+
           {% else %}
             <div class="alert alert-danger">
               <strong>Ошибка расчёта</strong><br>
-              {{ result.error_text }}
+              Статус: {{ result.status|default:"unknown" }}
             </div>
+
             {% if result.raw_xml %}
               <details>
                 <summary>Показать сырой ответ API (XML)</summary>

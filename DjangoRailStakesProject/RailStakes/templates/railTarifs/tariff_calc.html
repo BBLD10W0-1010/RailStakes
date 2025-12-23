@@ -1,148 +1,31 @@
-{% extends "railTarifs/base.html" %}
-{% block title %}Расчет тарифа{% endblock %}
+{% if result %}
+  {% if result.status == "ok" %}
+    <div class="alert alert-success">
+      <div><b>Расчет выполнен</b></div>
 
-{% block content %}
-<div class="row g-4">
-  <div class="col-lg-7">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h1 class="h4 mb-3">Расчет ставки ЖД тарифа</h1>
+      {% if result.total_all and result.total_all.value %}
+        <div>Итог: <b>{{ result.total_all.value }}</b> {{ result.total_all.currency }}</div>
+      {% else %}
+        <div>Итог: —</div>
+      {% endif %}
 
-        <form method="post" novalidate>
-          {% csrf_token %}
+      {% if result.tonna_all and result.tonna_all.value %}
+        <div>За тонну: {{ result.tonna_all.value }} {{ result.tonna_all.currency }}</div>
+      {% endif %}
 
-          <div class="mb-3">
-            <label class="form-label">{{ form.cargo.label }} *</label>
-            {{ form.cargo }}
-            <div class="text-danger small">{{ form.cargo.errors }}</div>
-            <div class="form-text">Начните вводить тип груза</div>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">{{ form.from_station.label }} *</label>
-            {{ form.from_station }}
-            <div class="text-danger small">{{ form.from_station.errors }}</div>
-            <div class="form-text">Начните вводить станцию (например, моск)</div>
-          </div>
-
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <label class="form-label">{{ form.fstate.label }}</label>
-              {{ form.fstate }}
-              <div class="text-danger small">{{ form.fstate.errors }}</div>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">{{ form.tstate.label }}</label>
-              {{ form.tstate }}
-              <div class="text-danger small">{{ form.tstate.errors }}</div>
-            </div>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">{{ form.to_station.label }} *</label>
-            {{ form.to_station }}
-            <div class="text-danger small">{{ form.to_station.errors }}</div>
-            <div class="form-text">Начните вводить станцию (например, санкт)</div>
-          </div>
-
-          <div class="mb-3">
-            <label class="form-label">{{ form.wagon_type.label }} *</label>
-            {{ form.wagon_type }}
-            <div class="text-danger small">{{ form.wagon_type.errors }}</div>
-          </div>
-
-          <div class="row g-3 mb-3">
-            <div class="col-md-6">
-              <label class="form-label">{{ form.weight_kg.label }}</label>
-              {{ form.weight_kg }}
-              <div class="text-danger small">{{ form.weight_kg.errors }}</div>
-            </div>
-            <div class="col-md-6">
-              <label class="form-label">{{ form.capacity_tons.label }}</label>
-              {{ form.capacity_tons }}
-              <div class="text-danger small">{{ form.capacity_tons.errors }}</div>
-            </div>
-          </div>
-
-          <div class="mb-3">
-            <div class="form-check">
-              {{ form.empt }} <label class="form-check-label">{{ form.empt.label }}</label>
-            </div>
-            <div class="form-check">
-              {{ form.owner }} <label class="form-check-label">{{ form.owner.label }}</label>
-            </div>
-          </div>
-
-          <button class="btn btn-primary" type="submit">Рассчитать</button>
-        </form>
-      </div>
+      {% if result.delivery_time and result.delivery_time.value %}
+        <div>Срок доставки: {{ result.delivery_time.value }} {{ result.delivery_time.unit }}</div>
+      {% endif %}
     </div>
-  </div>
 
-  <div class="col-lg-5">
-    <div class="card shadow-sm">
-      <div class="card-body">
-        <h2 class="h5 mb-3">Результат</h2>
+    <details>
+      <summary>Показать сырой ответ API (XML)</summary>
+      <pre style="white-space: pre-wrap">{{ result.raw_xml }}</pre>
+    </details>
 
-        {% if result %}
-          {% if result.ok %}
-            <div class="alert alert-success">
-              <div><strong>Расчет выполнен</strong></div>
-              <div class="mt-2">
-                Итог: <strong>
-                  {% if result.total_price %}{{ result.total_price }}{% else %}—{% endif %}
-                </strong> {{ result.currency }}
-              </div>
-              <div class="small text-muted mt-2">
-                Если итог не распознан — открой сырой ответ ниже, и мы подстроим парсер под точный тег.
-              </div>
-            </div>
-
-            <details>
-              <summary>Показать сырой ответ API (XML)</summary>
-              <pre class="mt-2" style="max-height: 320px; overflow:auto;">{{ result.raw_xml|escape }}</pre>
-            </details>
-          {% else %}
-            <div class="alert alert-danger">
-              <strong>Ошибка расчёта</strong><br>
-              {{ result.error_text }}
-            </div>
-            {% if result.raw_xml %}
-              <details>
-                <summary>Показать сырой ответ API (XML)</summary>
-                <pre class="mt-2" style="max-height: 320px; overflow:auto;">{{ result.raw_xml|escape }}</pre>
-              </details>
-            {% endif %}
-          {% endif %}
-        {% else %}
-          <div class="text-muted">Заполни параметры и нажми “Рассчитать”.</div>
-        {% endif %}
-      </div>
+  {% else %}
+    <div class="alert alert-danger">
+      Ошибка расчёта. Статус: {{ result.status }}
     </div>
-  </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-  function initSelect2(selector, url, placeholder) {
-    $(selector).select2({
-      width: "100%",
-      placeholder: placeholder,
-      minimumInputLength: 1,
-      ajax: {
-        url: url,
-        dataType: "json",
-        delay: 250,
-        data: function(params){ return { q: params.term }; },
-        processResults: function(data){ return data; }
-      }
-    });
-  }
-
-  $(function(){
-    initSelect2(".js-station", "{% url 'railTarifs:station_autocomplete' %}", "Начните вводить станцию…");
-    initSelect2(".js-cargo", "{% url 'railTarifs:cargo_autocomplete' %}", "Начните вводить тип груза…");
-  });
-</script>
-{% endblock %}
+  {% endif %}
+{% endif %}

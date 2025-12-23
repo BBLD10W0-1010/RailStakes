@@ -22,6 +22,9 @@ PASSWORD = os.getenv("DB_USER_PASSWORD")
 HOST = os.getenv("DB_HOST")
 ENGINE = os.getenv("DB_ENGINE")
 PORT = os.getenv("DB_PORT")
+ALTA_API_BASE_URL = os.getenv("ALTA_API_BASE_URL", "https://www.alta.ru/rail_tracking/rail_trf/")
+ALTA_API_KEY = os.getenv("ALTA_API_KEY", "")
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -66,7 +69,7 @@ ROOT_URLCONF = 'RailStakes.urls'
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],   # ВАЖНО
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
