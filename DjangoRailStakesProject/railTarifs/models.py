@@ -156,3 +156,15 @@ class TariffResult(models.Model):
         verbose_name = "Результат расчёта"
         verbose_name_plural = "Результаты расчётов"
         ordering = ["-calculated_at"]
+
+class Country(models.Model):
+    code = models.CharField("Код страны", max_length=5, unique=True)  # "20"
+    name = models.CharField("Страна", max_length=120)
+
+    class Meta:
+        verbose_name = "Страна"
+        verbose_name_plural = "Страны"
+        ordering = ["name"]
+
+    def __str__(self):
+        return f"{self.name} ({self.code})"
