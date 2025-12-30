@@ -120,7 +120,7 @@ class TariffWagon(models.Model):
         related_name="wagons",
         verbose_name="Запрос",
     )
-    index = models.PositiveSmallIntegerField("№ вагона (1..N)")
+    index = models.PositiveSmallIntegerField("№ вагона")
     weight_kg = models.PositiveIntegerField("Вес, кг (w/wN)")
     capacity_tons = models.DecimalField("Г/п, т (gp/gpN)", max_digits=7, decimal_places=2)
 
@@ -168,3 +168,14 @@ class Country(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.code})"
+    
+class UserQuota(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="quota")
+    total_limit = models.PositiveIntegerField(default=5) 
+    used = models.PositiveIntegerField(default=0)          
+
+    def remaining(self) -> int:
+        return max(0, self.total_limit - self.used)
+
+    def __str__(self):
+        return f"{self.user} ({self.used}/{self.total_limit})"
