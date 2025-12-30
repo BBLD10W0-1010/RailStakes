@@ -176,6 +176,11 @@
     </div>
   </div>
 </div>
+{% if quota_remaining != None %}
+  <div class="alert alert-info py-2">
+    Осталось запросов: <strong>{{ quota_remaining }}</strong>
+  </div>
+{% endif %}
 {% endblock %}
 
 {% block scripts %}
