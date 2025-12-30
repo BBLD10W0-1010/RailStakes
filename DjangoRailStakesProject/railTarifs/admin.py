@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Station, Cargo, WagonType, TariffQuery, TariffWagon, TariffResult
+from .models import Station, Cargo, WagonType, TariffQuery, TariffWagon, TariffResult, UserQuota
 
 
 @admin.register(Station)
@@ -37,3 +37,9 @@ class TariffQueryAdmin(admin.ModelAdmin):
 class TariffResultAdmin(admin.ModelAdmin):
     list_display = ("query", "ok", "total_price", "currency", "calculated_at")
     list_filter = ("ok", "calculated_at")
+
+@admin.register(UserQuota)
+class UserQuotaAdmin(admin.ModelAdmin):
+    list_display = ("user", "used", "total_limit")
+    search_fields = ("user__username", "user__email")
+    list_editable = ("total_limit",)

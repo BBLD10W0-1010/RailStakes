@@ -143,6 +143,7 @@ class TariffResult(models.Model):
         related_name="result",
         verbose_name="Запрос",
     )
+    
     ok = models.BooleanField("Успешно", default=False)
     total_price = models.DecimalField("Итоговая ставка", max_digits=14, decimal_places=2, null=True, blank=True)
     currency = models.CharField("Валюта", max_length=10, blank=True, default="RUB")

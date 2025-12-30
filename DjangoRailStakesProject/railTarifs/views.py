@@ -6,6 +6,7 @@ from .forms import TariffCalcForm
 from .services.alta_api import AltaApiClient
 from .models import TariffQuery, TariffResult, TariffWagon
 from django.db import transaction
+from django.core.paginator import Paginator
 
 @login_required
 def tariff_calc_page(request):
@@ -138,3 +139,16 @@ def cargo_autocomplete(request):
         results.append({"id": c.id, "text": label})
 
     return JsonResponse({"results": results})
+
+@login_required
+def my_calculations(request):
+    qs = (
+        TariffQuery.objects.filter(user=request.user)
+        .select_related("from_station", "to_station", "cargo", "wagon_type")
+        .prefetch_related("result")
+        .order_by("-created_at")
+    )
+
+    paginator = Paginator(qs, 20)
+    page = paginator.get_page(request.GET.get("page"))
+    return render(request, "railTarifs/my_calculations.html", {"page": page})
