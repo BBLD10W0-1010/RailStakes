@@ -61,27 +61,32 @@ https://screenshots/admin_panel.png
 
 1. Клонируйте репозиторий:
 bash
+```
 git clone https://github.com/BBLD10W0-1010/RailStakes
 cd rail-stakes
-
+```
 2. Создайте и активируйте виртуальное окружение:
 bash
 # Для Linux/Mac:
+```
 python -m venv venv
 source venv/bin/activate
-
+```
 # Для Windows:
+```
 python -m venv venv
 venv\Scripts\activate
+```
 3. Установите зависимости:
 bash
+```
 pip install -r requirements.txt
-
+```
 4. Настройте базу данных, сохраните название бд, имя пользователя с правами на запись/чтение/редактирование, его пароль, адрес хоста/localhost, порт хоста
 5. Настройте переменные окружения:
 Создайте файл .env в корневой директории проекта:
 
-
+    ```
     DB_ENGINE=django.db.backends.postgresql // либо ваш DB_ENGINE, прим. django.db.backends.mysql
 
     DB_NAME=rail_stakes // название вашей бд
@@ -97,21 +102,21 @@ pip install -r requirements.txt
     ALTA_API_BASE_URL=https://www.alta.ru/rail_tracking/rail_trf/ //оставлять таким
 
     ALTA_API_KEY=your_api_key_here // Ваш ключ полученный от представителей Альта-софт, 32 символа, состоит из заглавных английских букв и цифр.
-
+    ```
 
 6. Выполните миграции:
 bash
-
+```
 python manage.py makemigrations
 
 python manage.py migrate
-
+```
 7. Создайте суперпользователя:
 
 bash
-
+```
 python manage.py createsuperuser
-
+```
 Запомните данные
 
 8. Загрузите начальные данные (опционально):
@@ -119,17 +124,17 @@ python manage.py createsuperuser
 bash
 
 # Для загрузки тестовых данных в справочники
-
+```
 python manage.py load_references.py
-
+```
 //В корне проекта находятся файлы - примеры того как данные должны выглядеть для загрузки в БД с помощью этого скрипта
 
 9. Запустите сервер разработки:
 
 bash
-
+```
 python manage.py runserver
-
+```
 10. Откройте проект в браузере:
 
 Перейдите по ссылке: http://127.0.0.1:8000/
