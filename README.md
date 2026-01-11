@@ -83,12 +83,19 @@ pip install -r requirements.txt
 
 
     DB_ENGINE=django.db.backends.postgresql // либо ваш DB_ENGINE, прим. django.db.backends.mysql
+
     DB_NAME=rail_stakes // название вашей бд
+
     DB_USER=your_username // имя пользователя бд
+
     DB_USER_PASSWORD=your_password // пароль пользователя бд
+
     DB_HOST=localhost // адрес хоста
+
     DB_PORT=5432 // порт хоста
+
     ALTA_API_BASE_URL=https://www.alta.ru/rail_tracking/rail_trf/ //оставлять таким
+    
     ALTA_API_KEY=your_api_key_here // Ваш ключ полученный от представителей Альта-софт, 32 символа, состоит из заглавных английских букв и цифр.
 
 
