@@ -95,30 +95,43 @@ pip install -r requirements.txt
     DB_PORT=5432 // порт хоста
 
     ALTA_API_BASE_URL=https://www.alta.ru/rail_tracking/rail_trf/ //оставлять таким
-    
+
     ALTA_API_KEY=your_api_key_here // Ваш ключ полученный от представителей Альта-софт, 32 символа, состоит из заглавных английских букв и цифр.
 
 
 6. Выполните миграции:
 bash
+
 python manage.py makemigrations
+
 python manage.py migrate
+
 7. Создайте суперпользователя:
+
 bash
+
 python manage.py createsuperuser
 
 Запомните данные
+
 8. Загрузите начальные данные (опционально):
+
 bash
+
 # Для загрузки тестовых данных в справочники
+
 python manage.py load_references.py
 
 //В корне проекта находятся файлы - примеры того как данные должны выглядеть для загрузки в БД с помощью этого скрипта
 
 9. Запустите сервер разработки:
+
 bash
+
 python manage.py runserver
+
 10. Откройте проект в браузере:
+
 Перейдите по ссылке: http://127.0.0.1:8000/
 
 
