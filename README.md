@@ -128,7 +128,7 @@ bash
 python manage.py load_references.py
 ```
 //В корне проекта находятся файлы - примеры того как данные должны выглядеть для загрузки в БД с помощью этого скрипта
-
+//файлы: stations.json, cargo-types.json, states.json, wagons (1).json
 9. Запустите сервер разработки:
 
 bash
