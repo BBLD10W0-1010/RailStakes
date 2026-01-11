@@ -8,10 +8,6 @@ from railTarifs.models import Station, Cargo, WagonType, Country
 
 
 def split_name_code(raw: str):
-    """
-    В твоих файлах формат: 'Название-12345' или 'Название с дефисами-12345'
-    Берём код как хвост после последнего '-'.
-    """
     raw = (raw or "").strip()
     if "-" not in raw:
         return raw, ""
@@ -67,7 +63,7 @@ class Command(BaseCommand):
             if not code:
                 continue
 
-            to_create.append(Cargo(codeETG=code, codeGNG=None, name=name))
+            to_create.append(Cargo(etsng_code=code, gng_code=None, name=name))
 
         Cargo.objects.bulk_create(to_create, ignore_conflicts=True, batch_size=5000)
         self.stdout.write(f"Cargo loaded: +{len(to_create)}")
