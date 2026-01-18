@@ -162,12 +162,12 @@
               Статус: {{ result.status|default:"unknown" }}
             </div>
 
-            {% if result.raw_xml %}
+            <!-- {% if result.raw_xml %}
               <details>
                 <summary>Показать сырой ответ API (XML)</summary>
                 <pre class="mt-2" style="max-height: 320px; overflow:auto;">{{ result.raw_xml|escape }}</pre>
               </details>
-            {% endif %}
+            {% endif %} -->
           {% endif %}
         {% else %}
           <div class="text-muted">Заполни параметры и нажми “Рассчитать”.</div>

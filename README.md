@@ -2,7 +2,7 @@ RailStakes - Система расчета железнодорожных тар
 Профессиональный веб-сервис для расчета железнодорожных тарифов перевозок.
 Платформа позволяет сотрудникам транспортных компаний быстро и точно рассчитывать стоимость перевозки грузов между станциями с использованием актуальных тарифов через интеграцию с внешним API. Система сохраняет историю расчетов, управляет квотами пользователей и предоставляет удобный интерфейс для работы со справочниками.
 
-Ссылка на рабочий проект: [https://bbld10w010.pythonanywhere.com]
+Ссылка на рабочий проект: [https://rail-calc.ru]
 
 🚀 Технологии
 Python 3.13
@@ -11,11 +11,9 @@ Django 6.0
 
 В разработке использовался BDEngine PostgreSQL
 
-На деплое используется предоставляемая бесплатно хостером MySQL
+На деплое используется MySQL
 
 Requests 2.31+ - для HTTP-запросов к внешнему API
-
-XML.etree.ElementTree - для парсинга XML-ответов от API
 
 Django Templates - для рендеринга HTML
 
@@ -63,7 +61,7 @@ https://screenshots/admin_panel.png
 bash
 ```
 git clone https://github.com/BBLD10W0-1010/RailStakes
-cd rail-stakes
+cd RailStakes
 ```
 2. Создайте и активируйте виртуальное окружение:
 bash
@@ -80,9 +78,35 @@ venv\Scripts\activate
 3. Установите зависимости:
 bash
 ```
+pip install -U pip wheel setuptools 
 pip install -r requirements.txt
+#Обязательно должен быть:
+#Django==4.2.*
+#gunicorn
+#mysqlclient
 ```
-4. Настройте базу данных, сохраните название бд, имя пользователя с правами на запись/чтение/редактирование, его пароль, адрес хоста/localhost, порт хоста
+4. Установка и создание БД MySQL:
+bash
+```
+sudo apt install -y mysql-server
+sudo mysql
+```
+
+MySQL
+```
+CREATE DATABASE YOUR_NAME CHARACTER SET utf8mb4;
+CREATE USER 'YOUR_NAME'@'localhost' IDENTIFIED BY 'YOUR_PASSWORD';
+GRANT ALL PRIVILEGES ON YOUR_NAME.* TO 'YOUR_NAME'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+Обновите в setting.py настройки DATABASE в соответствии с созданными данными
+
+bash
+```
+EXIT;
+```
+
 5. Настройте переменные окружения:
 Создайте файл .env в корневой директории проекта:
 
@@ -104,39 +128,125 @@ pip install -r requirements.txt
     ALTA_API_KEY=your_api_key_here // Ваш ключ полученный от представителей Альта-софт, 32 символа, состоит из заглавных английских букв и цифр.
     ```
 
-6. Выполните миграции:
+6. settings.py:
+
+Обязательные настройки для прода:
+
+python
+```
+DEBUG = False
+
+ALLOWED_HOSTS = [
+    "your-domain.com",
+    "www.your-domain.com",
+    "SERVER_IP",
+]
+
+STATIC_URL = "/static/"
+STATIC_ROOT = "/var/www/railstakes/static"
+```
+
+python
+```
+python manage.py collectstatic
+```
+Путь в конце выполнения collectstatic должен совпадать с STATIC_ROOT
+
+
+7. Gunicorn (systemd)
+
 bash
 ```
-python manage.py makemigrations
-
-python manage.py migrate
+sudo nano /etc/systemd/system/railstakes.service
 ```
-7. Создайте суперпользователя:
+
+ini
+```
+[Unit]
+Description=Gunicorn for RailStakes
+After=network.target
+
+[Service]
+User=YOR_USER
+Group=www-data
+WorkingDirectory=PATH_TO_YOUR_WORKFOLDER
+
+EnvironmentFile=PATH_TO_YOUR_ENV
+Environment="PATH=PATH_TO_YOUR_VENV"
+
+ExecStart=/root/RailStakes/venv-clean/bin/gunicorn \
+  --workers 3 \
+  --bind 127.0.0.1:8000 \
+  RailStakes.wsgi:application
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
 
 bash
 ```
-python manage.py createsuperuser
+sudo systemctl daemon-reload
+sudo systemctl enable --now railstakes
 ```
-Запомните данные
 
-8. Загрузите начальные данные (опционально):
+8. Nginx
+```
+sudo nano /etc/nginx/sites-available/railstakes
+```
+
+nginx
+```
+server {
+    listen 80 default_server;
+    listen [::]:80 default_server;
+    server_name YOUR_DOMAIN YOUR_DOMAIN2;
+
+    location /static/ {
+        alias /var/www/railstakes/static/;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
 
 bash
-
-# Для загрузки тестовых данных в справочники
 ```
-python manage.py load_references.py
+sudo ln -s /etc/nginx/sites-available/railstakes /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t
+sudo systemctl reload nginx
 ```
-//В корне проекта находятся файлы - примеры того как данные должны выглядеть для загрузки в БД с помощью этого скрипта
-//файлы: stations.json, cargo-types.json, states.json, wagons (1).json
-9. Запустите сервер разработки:
 
+
+
+9. Выпуск сертификата:
 bash
 ```
-python manage.py runserver
+sudo certbot --nginx -d your-domain.com -d www.your-domain.com
 ```
-10. Откройте проект в браузере:
 
-Перейдите по ссылке: http://127.0.0.1:8000/
+
+10. Полезные команды:
+Перезапуск приложения
+bash
+```
+sudo systemctl restart railstakes 
+```
+
+Загрузка файлов грузов, вагонов, станций (примеры уже есть в репозитории)
+bash
+```
+python manage.py load_references 
+```
+После выполнения в базе появятся записи, которых достаточно для проверки работы сайта
+
 
 
